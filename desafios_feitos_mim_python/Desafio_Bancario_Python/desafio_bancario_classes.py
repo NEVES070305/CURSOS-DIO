@@ -1,5 +1,6 @@
+
 import textwrap
-from abc import ABC, abstractclassmethod, abstractmethod, abstractproperty
+from abc import ABC, abstractclassmethod,abstractproperty
 from datetime import datetime
 
 class Cliente:
@@ -68,6 +69,16 @@ class Conta:
             print("\n@@@ Operação falhou! O valor informado é inválido. @@@")
 
         return False 
+    
+    def depositar(self, valor):
+        if valor > 0:
+            self._saldo += valor
+            print("\n=== Depósito realizado com sucesso! ===")
+        else:
+            print("\n@@@ Operação falhou! O valor informado é inválido. @@@")
+            return False
+
+        return True
 
 class ContaCorrente(Conta):
     def __init__(self,  numero, cliente, limite=500, limite_saques=3):
@@ -77,11 +88,11 @@ class ContaCorrente(Conta):
 
     def sacar(self,valor):
         numero_saques=len(
-            [transacao for transacao in self.historico.transacoes if transacao["tipo"]==Saque.__name__]
+            [transacao for transacao in self.historico._transacoes if transacao["tipo"]==Saque.__name__]
         )
 
-        excedeu_limite=valor>self.limite
-        excedeu_saques=numero_saques>=self.limites_saques
+        excedeu_limite=valor>self._limite
+        excedeu_saques=numero_saques>=self._limites_saques
 
         if excedeu_limite:
             print("Operação falhou. Excedeu o limite.")
@@ -169,7 +180,16 @@ def menu():
 def filtrar_cliente(cpf,clientes):
     clientes_filtrados=[cliente for cliente in clientes if cliente.cpf == cpf] 
     #se dentro de algum valor de usuários já existir o cpf dado, esse primeiro usuário encontrado é guardado na lista usuarios_filtrados
-    return clientes_filtrados[0] if clientes_filtrados else None #A parte if usuarios_filtrados é uma condição que verifica se a lista usuarios_filtrados está vazia ou não. Se a lista estiver vazia, a condição é considerada falsa e o valor retornado será None.
+    return clientes_filtrados[0] if clientes_filtrados else None #A parte if usuarios_filtrados é uma condição que verifica se a lista usuarios_filtrados está vazia ou não. Se a lista estiver vazia, a condição é considerada falsa e o valor retornado será None.    
+def recuperar_conta_cliente(cliente):
+    if not cliente.contas:
+        print("Cliente não possui conta!")
+        return
+    
+    #FIXME:
+    return cliente.contas[0]
+
+
 def depositar(clientes):
     cpf=input("Informe o CPF do cliente: ")
     cliente=filtrar_cliente(cpf,clientes)
@@ -184,7 +204,7 @@ def depositar(clientes):
     if not conta:
         return
     
-    Cliente.realizar_transacao(conta,transacao)
+    cliente.realizar_transacao(conta,transacao)
 
 def sacar(clientes):
     cpf=input("Informe o CPF do cliente: ")
@@ -193,14 +213,14 @@ def sacar(clientes):
     if not cliente:
         print("Não existe esse ciente!")
         return
-    valor=float(input("Informe o valor do depósito: "))
-    transacao=Deposito(valor)
+    valor=float(input("Informe o valor do saque: "))
+    transacao=Saque(valor)
 
     conta=recuperar_conta_cliente(cliente)
     if not conta:
         return
     
-    Cliente.realizar_transacao(conta,transacao)
+    cliente.realizar_transacao(conta,transacao)
 
 def exibir_extrato(clientes):
     cpf = input("Informe o CPF do cliente: ")
@@ -228,13 +248,7 @@ def exibir_extrato(clientes):
     print(f"\nSaldo:\n\tR$ {conta.saldo:.2f}")
     print("==========================================")
 
-def recuperar_conta_cliente(cliente):
-    if not cliente.contas:
-        print("Cliente não possui conta!")
-        return
-    
-    #FIXME:
-    return cliente.contas[0]
+
 
 def criar_cliente(clientes):
     cpf = input("Informe o CPF (somente número): ")
@@ -320,6 +334,5 @@ def main():
             print("\n@@@ Operação inválida, por favor selecione novamente a operação desejada. @@@")
 
 main()
-
 
 
